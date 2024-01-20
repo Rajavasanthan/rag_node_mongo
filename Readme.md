@@ -1,4 +1,4 @@
-Add this JSON to mongodb atlas
+Add this JSON to mongodb atlas Search Index
 
 ```JSON
 {
