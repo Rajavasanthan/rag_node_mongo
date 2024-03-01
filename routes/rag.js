@@ -13,7 +13,7 @@ var PDFParser = require("pdf2json");
 const pdfParser = new PDFParser(this, 1);
 
 const ai = new OpenAI({
-  apiKey: process.env.OPENAI_KEY,
+  apiKey : process.env.OPENAI_KEY,
 });
 
 /* GET home page. */
@@ -43,9 +43,9 @@ router.get("/doc", async function (req, res, next) {
   }
 });
 
-router.get("/retrive", async function (req, res, next) {
+router.post("/retrive", async function (req, res, next) {
   try {
-    let text = "Hospital covered under the scheme";
+    let text = req.body.question;
     const connection = await mongoodb.MongoClient.connect(process.env.DB);
     const db = connection.db("rag");
     const collection = db.collection("rag_docs");
@@ -75,10 +75,10 @@ router.get("/retrive", async function (req, res, next) {
         },
       },
     ]);
-    console.log(searchResult);
+    // console.log(searchResult);
     let finalResult = [];
     await searchResult.forEach((doc) => finalResult.push(doc.text));
-
+    console.log(finalResult)
     let chatres = await ai.chat.completions.create({
       model: "gpt-4",
       messages: [
@@ -95,7 +95,14 @@ router.get("/retrive", async function (req, res, next) {
         },
       ],
     });
-    res.json(chatres.choices[0].message.content);
+    console.log(`${finalResult.map(
+      (doc) => doc + "\n"
+    )} From the above context, answer the following question: ${text}`)
+    res.json({
+      data : {
+        result : chatres.choices[0].message.content
+      }
+    });
   } catch (error) {
     console.log(error);
   }
